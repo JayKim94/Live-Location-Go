@@ -98,8 +98,6 @@ function startApp(username) {
 
         conn.onopen = (evt) => {
             console.log("WebSocket connection opened: ", evt)
-            // Request regislation => receives UserJoined message with assigned role
-            conn.send(JSON.stringify({ request: "Register" }))
         }
 
         conn.onclose = (evt) => {
@@ -129,6 +127,8 @@ function startApp(username) {
                         const userData = message.data.split(',')
                         const userName = userData[0]
                         const userRole = userData[1]
+
+                        console.log(message.data);
 
                         if (userName === my_username) {
                             my_role = userRole

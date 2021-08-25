@@ -53,7 +53,7 @@ func (c *Client) readFromClient() {
 		return nil
 	})
 
-	// Read message and handle request
+	// Read message and broadcast to hub
 	for {
 		message := Message{}
 		err := c.conn.ReadJSON(&message)
@@ -65,36 +65,7 @@ func (c *Client) readFromClient() {
 			break
 		}
 
-		handleRequest(c, message)
-	}
-}
-
-func handleRequest(c *Client, m Message) {
-	// Register client and determine role
-	if m.Request == "Register" {
-		isReady := false
-		role := ""
-
-		if len(c.hub.clients) >= 2 {
-			isReady = true
-			role = "Runner"
-		} else {
-			role = "Hunter"
-		}
-
-		// Broadcast current client
-		c.hub.broadcast <- Message{
-			Request: "UserJoined",
-			Data:    c.username + "," + role,
-		}
-
-		// Broadcast whether game's ready
-		c.hub.broadcast <- Message{
-			Request: "ReadyCheck",
-			Data:    isReady,
-		}
-	} else {
-		c.hub.broadcast <- m
+		c.hub.broadcast <- message
 	}
 }
 

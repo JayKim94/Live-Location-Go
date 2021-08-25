@@ -25,18 +25,40 @@ func newHub() *Hub {
 func (h *Hub) run() {
 	for {
 		select {
+		// Register client
 		case client := <-h.register:
 			h.clients[client] = true
+			// Determine role
+			role := "Hunter"
+			if len(h.clients) >= 2 {
+				role = "Runner"
+			}
+
+			// Determine whether game's ready
+			isReady := false
+			if len(h.clients) >= 2 {
+				isReady = true
+			}
+
+			for c := range h.clients {
+				// Broadcast current client with assigned role
+				c.send <- Message{
+					Request: "UserJoined",
+					Data:    client.username + "," + role,
+				}
+				// Broadcast whether game's ready
+				c.send <- Message{
+					Request: "ReadyCheck",
+					Data:    isReady,
+				}
+			}
+		// Unregister client
 		case client := <-h.unregister:
-			for client := range h.clients {
-				select {
-				case client.send <- Message{
+			// Broadcast left user with user name
+			for c := range h.clients {
+				c.send <- Message{
 					Request: "UserLeft",
 					Data:    client.username,
-				}:
-				default:
-					close(client.send)
-					delete(h.clients, client)
 				}
 			}
 
@@ -44,6 +66,7 @@ func (h *Hub) run() {
 				delete(h.clients, client)
 				close(client.send)
 			}
+		// Broadcast
 		case message := <-h.broadcast:
 			for client := range h.clients {
 				select {
