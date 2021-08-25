@@ -14,6 +14,7 @@ html, body {
 #app {
   width: 100%;
   height: 100%;
+  padding: 2rem;
 }
 #title-overlay {
   height: 100%;
@@ -22,10 +23,16 @@ html, body {
   width: 100%;
   height: 100%;
 
-  display: none;
-  grid-template-columns: 1fr 2.5fr;
-  grid-template-rows: 1fr;
+  display: grid;
+
+  grid-template-columns: 1fr;
+  grid-template-rows: 2.5fr 1fr;
 }
+
+.hide {
+  display: none !important;
+}
+
 ul#rooms-list {
   margin: 5rem 0;
   min-width: 350px;
@@ -43,6 +50,10 @@ ul#rooms-list li {
 ul#rooms-list li > * {
   flex-grow: 1;
   text-align: center;
+}
+
+#connect-container {
+  margin: 50px 0;
 }
 
 .full-container {
@@ -67,11 +78,24 @@ ul#rooms-list li > * {
   font-weight: 600;
   opacity: .75;
 }
+.notify-text {
+  padding: 50px 0;
+  font-size: 1.25rem;
+}
+.accent-text {
+  font-weight: 600;
+  color: #0763e5;
+}
+
 .align-left {
   text-align: left !important;
 }
+.align-center {
+  text-align: center !important;
+}
+
 .default-button {
-  margin: 1rem;
+  margin: 1rem 0;
   padding: .75rem 2rem;
   font-size: 1rem;
   font-weight: 600;
@@ -82,6 +106,7 @@ ul#rooms-list li > * {
   cursor: pointer;
   opacity: .5;
   transition: all .15s;
+  text-align: center;
 }
 .default-button:hover {
   opacity: 1;
@@ -102,6 +127,15 @@ ul#rooms-list li > * {
   color: #0763e5;
 }
 
+input.input-field {
+  padding: 10px 20px !important;
+  font-size: 1.25rem;
+  text-align: center;
+}
+input:focus {
+  outline: 1px solid #0763e5;
+}
+
 .loader-wrapper {
   padding: 5rem 0;
   gap: 25px;
@@ -115,72 +149,27 @@ ul#rooms-list li > * {
   width: 50px !important;
 }
 
+.board-container {
+  grid-row: 1;
+}
 .log-container {
-  grid-column: 1;
-  background-color: black;
+  grid-row: 2;
 
   display: flex;
   flex-direction: column;
-  padding: 10px 0;
-}
-
-.board-container {
-  grid-column: 2;
-  background-color: black;
-}
-
-.text-container {
-  text-align: center;
-  margin: 10px 0;
-}
-
-.text-label {
-  color: whitesmoke;
-  opacity: .5;
-  text-align: center;
-}
-
-.text-value {
-  font-weight: 800;
-  color: indianred;
-}
-
-.text-title {
-  color: whitesmoke;
-  text-align: center;
-  font-size: 1.25rem;
-  font-weight: 800;
-}
-
-.btn {
-  cursor: pointer;
-  text-align: center;
-  color: white;
-  font-weight: 800;
-  border: 1px solid indianred;
-  border-radius: 3px;
-  margin: 15px;
-  padding: 10px 0;
-  opacity: .75;
-  transition: background-color 100ms linear;
-}
-
-.btn:hover {
-  opacity: 1;
-  background-color: darkred;
-  border: 1px solid darkred;
+  padding: 10px;
 }
 
 .logs {
   flex-grow: 1;
-  border: 1px solid indianred;
-  margin: 15px;
-  padding: 5px 10px;
+  border: 1px solid #30303055;
+  padding: 15px;
+  margin: 10px 0;
+  height: 125px;
+  overflow-y: scroll;
 }
-
 .log {
-  color: whitesmoke;
-  font-size: .75rem;
+  font-size: 1rem;
   opacity: .75;
 }
 
@@ -202,7 +191,7 @@ ul#rooms-list li > * {
 
   grid-row: 1;
   grid-column: 1;
-  background-color: darkslategray;
+  background-color: #303030;
   width: 100%;
   border: 1px solid lightslategray;
 }
@@ -210,36 +199,30 @@ ul#rooms-list li > * {
 .cell {
   border: 2px solid lightslategray;
 }
-
 .columns {
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
-
 .columns span {
   flex-grow: 1;
   display: grid;
   place-items: center;
   margin: 0 20px;
-  color: whitesmoke;
   font-weight: 800;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
 }
-
 .rows {
   display: flex;
   align-items: center;
 }
-
 .rows span {
   flex-grow: 1;
   display: grid;
   place-items: center;
-  color: whitesmoke;
   margin: 20px 0;
   font-weight: 800;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
 }
 
 .runner,
@@ -249,8 +232,8 @@ ul#rooms-list li > * {
   width: 100%;
   height: 100%;
   color: white;
-  font-weight: 800;
-  font-size: 1.25rem;
+  font-weight: 600;
+  font-size: 1.5rem;
 }
 
 .runner {

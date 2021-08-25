@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -12,7 +11,7 @@ import (
 const (
 	writeDelay = 10 * time.Second
 
-	pongDelay = 60 * time.Second
+	pongDelay = 15 * time.Second
 
 	pingPeriod = (pongDelay * 9) / 10
 
@@ -76,16 +75,25 @@ func (c *Client) readPump() {
 
 func handleRequest(c *Client, m Message) {
 	if m.Request == "Register" {
-		clients := make([]string, 0, len(c.hub.clients))
-		for client := range c.hub.clients {
-			clients = append(clients, client.username)
+
+		isReady := false
+		role := ""
+
+		if len(c.hub.clients) == 2 {
+			isReady = true
+			role = "Runner"
+		} else {
+			role = "Hunter"
 		}
 
-		data, _ := json.Marshal(clients)
+		c.hub.broadcast <- Message{
+			Request: "UserJoined",
+			Data:    c.username + "," + role,
+		}
 
 		c.hub.broadcast <- Message{
-			Request: "ReceiveUsersList",
-			Data:    string(data),
+			Request: "ReadyCheck",
+			Data:    isReady,
 		}
 	} else {
 		c.hub.broadcast <- m
@@ -114,6 +122,11 @@ func (c *Client) writePump() {
 			}
 		case <-ticker.C:
 			c.conn.SetWriteDeadline(time.Now().Add(writeDelay))
+
+			if err := c.conn.WriteJSON(Message{Request: "SendLocation"}); err != nil {
+				log.Println(err)
+			}
+
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return
 			}

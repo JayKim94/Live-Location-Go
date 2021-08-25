@@ -13,6 +13,7 @@
 
 <body>
     <div id="app">
+        <!-- CONNECT -->
         <div id="title-overlay" class="full-container flex-column-centered">
             <div class="title-text">
                 Live Location Go
@@ -23,100 +24,75 @@
             <div class="sub-text">
                 PBT3H19AKI
             </div>
-            <div class="rooms">
+            <div id="show-status" class="notify-text">
+                Enter your name and connect to <span class="accent-text">WebSocket</span>
+            </div>
+            <div id="rooms" class="hide flex-column-centered">
                 <div class="loader-wrapper flex-column-centered">
-                    <div>Searching for available rooms...</div>
+                    <div>Waiting for the runner...</div>
                     <div class="loader is-loading"></div>
                 </div>
-                <ul id="rooms-list">
-                    <div class="label-text">
-                        Available Rooms
-                    </div>
-                    <li>
-                        <div class="align-left">
-                            Room 1
-                        </div>
-                        <div>
-                            0 / 2
-                        </div>
-                        <button class="text-button">
-                            Enter
-                        </button>
-                    </li>
-                    <li>
-                        <div class="align-left">
-                            Room 2
-                        </div>
-                        <div>
-                            0 / 2
-                        </div>
-                        <button class="text-button">
-                            Enter
-                        </button>
-                    </li>
-                </ul>
             </div>
-            <div class="flex-column-centered">
-                <button id="create-button" class="default-button">
-                    Create
-                </button>
+            <div id="connect-container" class="flex-column-centered">
+                <form id="connect-form" class="flex-column-centered">
+                    <input id="username-field" type="text" class="input-field" placeholder="UserName">
+                    <button id="connect-button" class="default-button" type="submit">
+                        Connect
+                    </button>
+                </form>
             </div>
         </div>
-        <div id="game-field">
+        <!-- FIELD -->
+        <div id="game-field" class="hide">
             <section class="log-container">
-                <div class="text-container">
-                    <span class="text-label">
-                        Current Role:
-                    </span>
-                    <span class="text-value">
-                        Runner
+                <div class="text-container align-center">
+                    <span id="show-name" class="title-text">
+                        Test Player
                     </span>
                 </div>
-                <div class="btn">
-                    Start Game
+                <div class="text-container align-center">
+                    <span id="show-role" class="notify-text">
+                        Hunter
+                    </span>
                 </div>
-                <div class="text-container text-title">
-                    Gamelog
+                <div class="text-container align-left">
+                    <span class="notify-text">
+                        Gamelog
+                    </span>
                 </div>
-                <div class="logs">
-                    <div class="log">
-                        # P350 - Runner Joined
-                    </div>
-                    <div class="log">
-                        # P500 - Hunter Joined
-                    </div>
+                <div id="list-logs" class="logs">
                 </div>
-                <div class="btn">
-                    Close Game
+                <div class="default-button">
+                    Close Connection
                 </div>
             </section>
             <main class="board-container">
                 <div class="outer-grid">
                     <div class="inner-grid">
-                        <div class="cell"></div>
-                        <div class="cell">
+                        <div id="A1" class="cell"></div>
+                        <div id="A2" class="cell runner-location">
                             <div class="runner">
                                 Runner
                             </div>
                         </div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell">
+                        <div id="A3" class="cell"></div>
+                        <div id="A4" class="cell"></div>
+                        <div id="B1" class="cell"></div>
+                        <div id="B2" class="cell"></div>
+                        <div id="B3" class="cell"></div>
+                        <div id="B4" class="cell"></div>
+                        <div id="C1" class="cell hunter-location">
                             <div class="hunter">
                                 Hunter
                             </div>
                         </div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
+                        <div id="C2" class="cell"></div>
+                        <div id="C3" class="cell"></div>
+                        <div id="C4" class="cell"></div>
+                        <div id="D1" class="cell"></div>
+                        <div id="D2" class="cell"></div>
+                        <div id="D3" class="cell"></div>
+                        <div id="D4" class="cell"></div>
                     </div>
                     <div class="columns">
                         <span>A</span>
