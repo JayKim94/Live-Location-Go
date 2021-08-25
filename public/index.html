@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live location - Kim</title>
+    <script type="text/javascript">
+    window.onload = function () {
+        var conn;
+        if (window["WebSocket"]) {
+            conn = new WebSocket("ws://" + document.location.host + "/ws");
+
+            conn.onopen = function (evt) {
+                console.log(conn);
+                conn.send("You are connected!")
+            }
+
+            conn.onmessage = function (evt) {
+                var message = evt.data.split('\n');
+                console.log(message);
+            }
+        }
+    }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+
+            display: grid;
+            grid-template-columns: 1fr 2.5fr;
+            grid-template-rows: 1fr;
+        }
+
+        .log-container {
+            grid-column: 1;
+            background-color: black;
+
+            display: flex;
+            flex-direction: column;
+            padding: 10px 0;
+        }
+
+        .board-container {
+            grid-column: 2;
+            background-color: black;
+        }
+
+        .text-container {
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .text-label {
+            color: whitesmoke;
+            opacity: .5;
+            text-align: center;
+        }
+
+        .text-value {
+            font-weight: 800;
+            color: indianred;
+        }
+
+        .text-title {
+            color: whitesmoke;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+
+        .btn {
+            cursor: pointer;
+            text-align: center;
+            color: white;
+            font-weight: 800;
+            border: 1px solid indianred;
+            border-radius: 3px;
+            margin: 15px;
+            padding: 10px 0;
+            opacity: .75;
+            transition: background-color 100ms linear;
+        }
+
+        .btn:hover {
+            opacity: 1;
+            background-color: darkred;
+            border: 1px solid darkred;
+        }
+
+        .logs {
+            flex-grow: 1;
+            border: 1px solid indianred;
+            margin: 15px;
+            padding: 5px 10px;
+        }
+
+        .log {
+            color: whitesmoke;
+            font-size: .75rem;
+            opacity: .75;
+        }
+
+        .outer-grid {
+            display: grid;
+            grid-template-columns: 1fr Auto;
+            grid-template-rows: 1fr Auto;
+
+            width: 100%;
+            height: 100%;
+
+            padding: 20px 0 0 10px;
+        }
+
+        .inner-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr 1fr;
+
+            grid-row: 1;
+            grid-column: 1;
+            background-color: darkslategray;
+            width: 100%;
+            border: 1px solid lightslategray;
+        }
+
+        .cell {
+            border: 2px solid lightslategray;
+        }
+
+        .columns {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .columns span {
+            flex-grow: 1;
+            display: grid;
+            place-items: center;
+            margin: 0 20px;
+            color: whitesmoke;
+            font-weight: 800;
+            font-size: 1.25rem;
+        }
+
+        .rows {
+            display: flex;
+            align-items: center;
+        }
+
+        .rows span {
+            flex-grow: 1;
+            display: grid;
+            place-items: center;
+            color: whitesmoke;
+            margin: 20px 0;
+            font-weight: 800;
+            font-size: 1.25rem;
+        }
+
+        .runner, .hunter {
+            display: grid;
+            place-items: center;
+            width: 100%;
+            height: 100%;
+            color: white;
+            font-weight: 800;
+            font-size: 1.25rem;
+        }
+
+        .runner {
+            background-color: goldenrod;
+        }
+
+        .hunter {
+            background-color: firebrick;
+        }
+    </style>
+</head>
+<body>
+   <div id="app">
+       <div class="container">
+           <section class="log-container">
+                <div class="text-container">
+                    <span class="text-label">
+                        Current Role: 
+                    </span>
+                    <span class="text-value">
+                        Runner
+                    </span>
+                </div>
+                <div class="btn">
+                    Start Game
+                </div>
+                <div class="text-container text-title">
+                    Gamelog
+                </div>
+                <div class="logs">
+                    <div class="log">
+                        # P350 - Runner Joined
+                    </div>
+                    <div class="log">
+                        # P500 - Hunter Joined
+                    </div>
+                </div>
+                <div class="btn">
+                    Close Game
+                </div>
+           </section>
+           <main class="board-container">
+                <div class="outer-grid">
+                    <div class="inner-grid">
+                        <div class="cell"></div>
+                        <div class="cell">
+                            <div class="runner">
+                                Runner
+                            </div>
+                        </div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell">
+                            <div class="hunter">
+                                Hunter
+                            </div>
+                        </div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                    </div>
+                    <div class="columns">
+                        <span>A</span>
+                        <span>B</span>
+                        <span>C</span>
+                        <span>D</span>
+                    </div>
+                    <div class="rows">
+                        <span>1</span>
+                        <span>2</span>
+                        <span>3</span>
+                        <span>4</span>
+                    </div>
+                </div>
+           </main>
+       </div>
+   </div> 
+</body>
+</html>
