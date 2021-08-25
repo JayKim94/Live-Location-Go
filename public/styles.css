@@ -193,30 +193,30 @@ input:focus {
   grid-column: 1;
   background-color: #303030;
   width: 100%;
-  border: 1px solid lightslategray;
+  border: 1px solid #EFEFEF;
 }
 
 .cell {
-  border: 2px solid lightslategray;
+  border: 1px dotted #EFEFEF;
 }
-.columns {
+.coordinates_columns {
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
-.columns span {
+.coordinates_columns span {
   flex-grow: 1;
   display: grid;
   place-items: center;
-  margin: 0 20px;
+  margin: 0 20px !important;
   font-weight: 800;
   font-size: 1.5rem;
 }
-.rows {
+.coordinates_rows {
   display: flex;
   align-items: center;
 }
-.rows span {
+.coordinates_rows span {
   flex-grow: 1;
   display: grid;
   place-items: center;
@@ -233,7 +233,16 @@ input:focus {
   height: 100%;
   color: white;
   font-weight: 600;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
+}
+
+.runner-text {
+  font-weight: 600;
+  color: goldenrod;
+}
+.hunter-text {
+  font-weight: 600;
+  color: firebrick;
 }
 
 .runner {

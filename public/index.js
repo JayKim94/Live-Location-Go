@@ -12,6 +12,7 @@ let form_connect,
     list_logs,
     text_status,
     text_name,
+    button_close,
     text_role;
 
 window.onload = function () {
@@ -26,6 +27,7 @@ window.onload = function () {
     text_role = document.getElementById('show-role')
     text_name = document.getElementById('show-name')
     list_logs = document.getElementById('list-logs')
+    button_close = document.getElementById('close-button')
 
     form_connect.onsubmit = function (evt) {
         evt.preventDefault();
@@ -35,6 +37,10 @@ window.onload = function () {
         } else {
             text_status.innerHTML = `Please enter <span class='accent-text'>Your Name</span> to connect`;
         }
+    }
+
+    button_close.onclick = function (evt) {
+        window.location.reload()
     }
 }
 
@@ -77,11 +83,17 @@ function openConnection(username) {
 
                 if (userName === my_username) {
                     my_role = userRole
-                    text_role.innerHTML = `${my_role}`
+                    text_role.innerHTML = `<span class='${my_role === 'Hunter' ? 'hunter-text' : 'runner-text'}'>- ${my_role} -</span>`
                     appendLog("You joined the field");
                 } else {
                     appendLog(`<span class='accent-text'>${userName} (${userRole})</span> has joined the field`);
                 }
+            } else if (message.request === 'UserLeft') {
+                const username = message.data
+                appendLog(`<span class='accent-text'>${username}</span> has left the field`);
+                appendLog(`Closing connection...`);
+                conn.close()
+                window.location.reload()
             } else if (message.request === 'SendLocation') {
                 sendRandomCoordinates();
             } else if (message.request === 'ReceiveLocation') {
@@ -100,8 +112,7 @@ function openConnection(username) {
 
                     const targetCell = document.getElementById(`${row}${col}`)
                     targetCell.classList.add('hunter-location')
-                    targetCell.innerHTML = `<div class="hunter">Hunter</div>`
-
+                    targetCell.innerHTML = `<div class="hunter">Hunter ${my_role === role ? "(You)" : ""}</div>`
                 } else {
                     const previousCell = document.getElementsByClassName('runner-location')[0];
 
@@ -112,10 +123,10 @@ function openConnection(username) {
 
                     const targetCell = document.getElementById(`${row}${col}`)
                     targetCell.classList.add('runner-location')
-                    targetCell.innerHTML = `<div class="runner">Runner</div>`
+                    targetCell.innerHTML = `<div class="runner">Runner ${my_role === role ? "(You)" : ""}</div>`
                 }
 
-                appendLog(`${role} moved to the coordinates <span class='accent-text'>\"${row}${col}\"</span>`);
+                appendLog(`<span class='${role == "Hunter" ? "hunter-text" : "runner-text"}'>${role}</span> moved to the coordinates <span class='accent-text'>\"${row}${col}\"</span>`);
             }
         }
     }
@@ -129,7 +140,7 @@ function sendRandomCoordinates() {
 
 function appendLog(content) {
     let current = new Date()
-    current = `${current.getHours()}:${pad(current.getMinutes())}:${current.getSeconds()}`
+    current = `${pad(current.getHours())}:${pad(current.getMinutes())}:${pad(current.getSeconds())}`
     list_logs.innerHTML += `<div class='log'># ${content} :: ${current}</div> `
     list_logs.scrollTop = list_logs.scrollHeight - list_logs.clientHeight;
 }

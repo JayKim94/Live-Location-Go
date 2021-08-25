@@ -79,7 +79,7 @@ func handleRequest(c *Client, m Message) {
 		isReady := false
 		role := ""
 
-		if len(c.hub.clients) == 2 {
+		if len(c.hub.clients) > 1 {
 			isReady = true
 			role = "Runner"
 		} else {
@@ -123,8 +123,10 @@ func (c *Client) writePump() {
 		case <-ticker.C:
 			c.conn.SetWriteDeadline(time.Now().Add(writeDelay))
 
-			if err := c.conn.WriteJSON(Message{Request: "SendLocation"}); err != nil {
-				log.Println(err)
+			if len(c.hub.clients) == 2 {
+				if err := c.conn.WriteJSON(Message{Request: "SendLocation"}); err != nil {
+					log.Println(err)
+				}
 			}
 
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
@@ -140,7 +142,7 @@ func serveWs(hub *Hub, writer http.ResponseWriter, req *http.Request) {
 	username, ok := req.URL.Query()["username"]
 
 	if !ok || len(username[0]) < 1 {
-		log.Println("Url Param 'key' is missing")
+		log.Println("Url parameter 'username' is missing")
 		return
 	}
 
@@ -150,7 +152,7 @@ func serveWs(hub *Hub, writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	log.Println("Client Connected...")
+	log.Println("Client Connected: " + username[0])
 
 	client := &Client{hub: hub, conn: conn, send: make(chan Message, 256), username: string(username[0])}
 	client.hub.register <- client

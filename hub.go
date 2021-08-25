@@ -36,7 +36,19 @@ func (h *Hub) run() {
 		case client := <-h.register:
 			h.clients[client] = true
 		case client := <-h.unregister:
-			if _, success := h.clients[client]; success {
+			for client := range h.clients {
+				select {
+				case client.send <- Message{
+					Request: "UserLeft",
+					Data:    client.username,
+				}:
+				default:
+					close(client.send)
+					delete(h.clients, client)
+				}
+			}
+
+			if _, found := h.clients[client]; found {
 				delete(h.clients, client)
 				close(client.send)
 			}
