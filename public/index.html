@@ -1,197 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="bulma.min.css">
     <title>Live location - Kim</title>
-    <script type="text/javascript">
-    window.onload = function () {
-        var conn;
-        if (window["WebSocket"]) {
-            conn = new WebSocket("ws://" + document.location.host + "/ws");
-
-            conn.onopen = function (evt) {
-                console.log(conn);
-                conn.send("You are connected!")
-            }
-
-            conn.onmessage = function (evt) {
-                var message = evt.data.split('\n');
-                console.log(message);
-            }
-        }
-    }
-    </script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        .container {
-            width: 100vw;
-            height: 100vh;
-
-            display: grid;
-            grid-template-columns: 1fr 2.5fr;
-            grid-template-rows: 1fr;
-        }
-
-        .log-container {
-            grid-column: 1;
-            background-color: black;
-
-            display: flex;
-            flex-direction: column;
-            padding: 10px 0;
-        }
-
-        .board-container {
-            grid-column: 2;
-            background-color: black;
-        }
-
-        .text-container {
-            text-align: center;
-            margin: 10px 0;
-        }
-
-        .text-label {
-            color: whitesmoke;
-            opacity: .5;
-            text-align: center;
-        }
-
-        .text-value {
-            font-weight: 800;
-            color: indianred;
-        }
-
-        .text-title {
-            color: whitesmoke;
-            text-align: center;
-            font-size: 1.25rem;
-            font-weight: 800;
-        }
-
-        .btn {
-            cursor: pointer;
-            text-align: center;
-            color: white;
-            font-weight: 800;
-            border: 1px solid indianred;
-            border-radius: 3px;
-            margin: 15px;
-            padding: 10px 0;
-            opacity: .75;
-            transition: background-color 100ms linear;
-        }
-
-        .btn:hover {
-            opacity: 1;
-            background-color: darkred;
-            border: 1px solid darkred;
-        }
-
-        .logs {
-            flex-grow: 1;
-            border: 1px solid indianred;
-            margin: 15px;
-            padding: 5px 10px;
-        }
-
-        .log {
-            color: whitesmoke;
-            font-size: .75rem;
-            opacity: .75;
-        }
-
-        .outer-grid {
-            display: grid;
-            grid-template-columns: 1fr Auto;
-            grid-template-rows: 1fr Auto;
-
-            width: 100%;
-            height: 100%;
-
-            padding: 20px 0 0 10px;
-        }
-
-        .inner-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-            grid-template-rows: 1fr 1fr 1fr 1fr;
-
-            grid-row: 1;
-            grid-column: 1;
-            background-color: darkslategray;
-            width: 100%;
-            border: 1px solid lightslategray;
-        }
-
-        .cell {
-            border: 2px solid lightslategray;
-        }
-
-        .columns {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .columns span {
-            flex-grow: 1;
-            display: grid;
-            place-items: center;
-            margin: 0 20px;
-            color: whitesmoke;
-            font-weight: 800;
-            font-size: 1.25rem;
-        }
-
-        .rows {
-            display: flex;
-            align-items: center;
-        }
-
-        .rows span {
-            flex-grow: 1;
-            display: grid;
-            place-items: center;
-            color: whitesmoke;
-            margin: 20px 0;
-            font-weight: 800;
-            font-size: 1.25rem;
-        }
-
-        .runner, .hunter {
-            display: grid;
-            place-items: center;
-            width: 100%;
-            height: 100%;
-            color: white;
-            font-weight: 800;
-            font-size: 1.25rem;
-        }
-
-        .runner {
-            background-color: goldenrod;
-        }
-
-        .hunter {
-            background-color: firebrick;
-        }
-    </style>
+    <script src="index.js"></script>
 </head>
+
 <body>
-   <div id="app">
-       <div class="container">
-           <section class="log-container">
+    <div id="app">
+        <div id="title-overlay" class="full-container flex-column-centered">
+            <div class="title-text">
+                Live Location Go
+            </div>
+            <div class="logo sub-text">
+                bib International College
+            </div>
+            <div class="sub-text">
+                PBT3H19AKI
+            </div>
+            <div class="rooms">
+                <div class="loader-wrapper flex-column-centered">
+                    <div>Searching for available rooms...</div>
+                    <div class="loader is-loading"></div>
+                </div>
+                <ul id="rooms-list">
+                    <div class="label-text">
+                        Available Rooms
+                    </div>
+                    <li>
+                        <div class="align-left">
+                            Room 1
+                        </div>
+                        <div>
+                            0 / 2
+                        </div>
+                        <button class="text-button">
+                            Enter
+                        </button>
+                    </li>
+                    <li>
+                        <div class="align-left">
+                            Room 2
+                        </div>
+                        <div>
+                            0 / 2
+                        </div>
+                        <button class="text-button">
+                            Enter
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="flex-column-centered">
+                <button class="default-button">
+                    Create
+                </button>
+            </div>
+        </div>
+        <div id="game-field">
+            <section class="log-container">
                 <div class="text-container">
                     <span class="text-label">
-                        Current Role: 
+                        Current Role:
                     </span>
                     <span class="text-value">
                         Runner
@@ -214,8 +89,8 @@
                 <div class="btn">
                     Close Game
                 </div>
-           </section>
-           <main class="board-container">
+            </section>
+            <main class="board-container">
                 <div class="outer-grid">
                     <div class="inner-grid">
                         <div class="cell"></div>
@@ -256,8 +131,9 @@
                         <span>4</span>
                     </div>
                 </div>
-           </main>
-       </div>
-   </div> 
+            </main>
+        </div>
+    </div>
 </body>
+
 </html>
