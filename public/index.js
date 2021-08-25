@@ -40,6 +40,7 @@ window.onload = function () {
     }
 
     button_close.onclick = function (evt) {
+        conn.close()
         window.location.reload()
     }
 }
@@ -92,8 +93,10 @@ function openConnection(username) {
                 const username = message.data
                 appendLog(`<span class='accent-text'>${username}</span> has left the field`);
                 appendLog(`Closing connection...`);
-                conn.close()
-                window.location.reload()
+                setTimeout(() => {
+                    conn.close()
+                    window.location.reload()
+                }, 2000);
             } else if (message.request === 'SendLocation') {
                 sendRandomCoordinates();
             } else if (message.request === 'ReceiveLocation') {

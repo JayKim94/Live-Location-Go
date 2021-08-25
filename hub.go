@@ -1,10 +1,5 @@
 package main
 
-type Room struct {
-	id    string
-	title string
-}
-
 // Hub definition
 type Hub struct {
 	clients map[*Client]bool
@@ -14,8 +9,6 @@ type Hub struct {
 	register chan *Client
 
 	unregister chan *Client
-
-	rooms map[*Room]map[*Client]bool
 }
 
 // Initializes hub
@@ -25,7 +18,6 @@ func newHub() *Hub {
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 		clients:    make(map[*Client]bool),
-		rooms:      make(map[*Room]map[*Client]bool),
 	}
 }
 

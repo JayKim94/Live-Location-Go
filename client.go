@@ -13,7 +13,7 @@ const (
 
 	pongDelay = 15 * time.Second
 
-	pingPeriod = (pongDelay * 9) / 10
+	pingPeriod = 10 * time.Second
 
 	maxMessageSize = 512
 )
@@ -33,9 +33,6 @@ type Client struct {
 
 	// buffered channel for outbounding messages
 	send chan Message
-
-	// ref to Room
-	room *Room
 }
 
 type Message struct {
