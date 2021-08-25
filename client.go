@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bytes"
+	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -25,6 +25,7 @@ var upgrader = websocket.Upgrader{
 }
 
 type Client struct {
+	username string
 	// ref to hub
 	hub *Hub
 
@@ -32,10 +33,15 @@ type Client struct {
 	conn *websocket.Conn
 
 	// buffered channel for outbounding messages
-	send chan []byte
+	send chan Message
 
 	// ref to Room
 	room *Room
+}
+
+type Message struct {
+	Data    interface{} `json:"data"`
+	Request string      `json:"request"`
 }
 
 func (c *Client) readPump() {
@@ -44,6 +50,7 @@ func (c *Client) readPump() {
 		c.conn.Close()
 	}()
 
+	// Set up for reading
 	c.conn.SetReadLimit(maxMessageSize)
 	c.conn.SetReadDeadline(time.Now().Add(pongDelay))
 	c.conn.SetPongHandler(func(appData string) error {
@@ -51,8 +58,10 @@ func (c *Client) readPump() {
 		return nil
 	})
 
+	// Read message and handle request
 	for {
-		_, message, err := c.conn.ReadMessage()
+		message := Message{}
+		err := c.conn.ReadJSON(&message)
 
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
@@ -61,8 +70,25 @@ func (c *Client) readPump() {
 			break
 		}
 
-		message = bytes.TrimSpace(bytes.Replace(message, []byte{'\n'}, []byte{' '}, -1))
-		c.hub.broadcast <- message
+		handleRequest(c, message)
+	}
+}
+
+func handleRequest(c *Client, m Message) {
+	if m.Request == "Register" {
+		clients := make([]string, 0, len(c.hub.clients))
+		for client := range c.hub.clients {
+			clients = append(clients, client.username)
+		}
+
+		data, _ := json.Marshal(clients)
+
+		c.hub.broadcast <- Message{
+			Request: "ReceiveUsersList",
+			Data:    string(data),
+		}
+	} else {
+		c.hub.broadcast <- m
 	}
 }
 
@@ -83,22 +109,8 @@ func (c *Client) writePump() {
 				return
 			}
 
-			writer, err := c.conn.NextWriter(websocket.TextMessage)
-			if err != nil {
-				return
-			}
-
-			writer.Write(message)
-
-			// Queue up the message to websocket
-			n := len(c.send)
-			for i := 0; i < n; i++ {
-				writer.Write([]byte{'\n'})
-				writer.Write(<-c.send)
-			}
-
-			if err := writer.Close(); err != nil {
-				return
+			if err := c.conn.WriteJSON(message); err != nil {
+				log.Println(err)
 			}
 		case <-ticker.C:
 			c.conn.SetWriteDeadline(time.Now().Add(writeDelay))
@@ -110,13 +122,24 @@ func (c *Client) writePump() {
 }
 
 func serveWs(hub *Hub, writer http.ResponseWriter, req *http.Request) {
+	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+
+	username, ok := req.URL.Query()["username"]
+
+	if !ok || len(username[0]) < 1 {
+		log.Println("Url Param 'key' is missing")
+		return
+	}
+
 	conn, err := upgrader.Upgrade(writer, req, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
+	log.Println("Client Connected...")
+
+	client := &Client{hub: hub, conn: conn, send: make(chan Message, 256), username: string(username[0])}
 	client.hub.register <- client
 
 	go client.writePump()
