@@ -15,14 +15,15 @@ func main() {
 
 	fs := http.FileServer(http.Dir("./public"))
 
-	// Entry point
+	// Routes
 	http.Handle("/", fs)
 	http.HandleFunc("/ws", func(writer http.ResponseWriter, req *http.Request) {
-		serveWs(hub, writer, req)
+		serveWebSocket(hub, writer, req)
 	})
 
+	// Serve
+	log.Println("Listening on http://localhost:8080...")
 	err := http.ListenAndServe(*address, nil)
-	log.Println("Listening on :3000...")
 
 	if err != nil {
 		log.Fatal("Error while listen and serve: ", err)

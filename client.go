@@ -27,10 +27,8 @@ type Client struct {
 	username string
 	// ref to hub
 	hub *Hub
-
 	// current websocket connection
 	conn *websocket.Conn
-
 	// buffered channel for outbounding messages
 	send chan Message
 }
@@ -40,7 +38,8 @@ type Message struct {
 	Request string      `json:"request"`
 }
 
-func (c *Client) readPump() {
+// Read from client
+func (c *Client) readFromClient() {
 	defer func() {
 		c.hub.unregister <- c
 		c.conn.Close()
@@ -61,7 +60,7 @@ func (c *Client) readPump() {
 
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("Error while reading message %v", err)
+				log.Printf("Socket may be already closed for %v", c.username)
 			}
 			break
 		}
@@ -71,23 +70,25 @@ func (c *Client) readPump() {
 }
 
 func handleRequest(c *Client, m Message) {
+	// Register client and determine role
 	if m.Request == "Register" {
-
 		isReady := false
 		role := ""
 
-		if len(c.hub.clients) > 1 {
+		if len(c.hub.clients) >= 2 {
 			isReady = true
 			role = "Runner"
 		} else {
 			role = "Hunter"
 		}
 
+		// Broadcast current client
 		c.hub.broadcast <- Message{
 			Request: "UserJoined",
 			Data:    c.username + "," + role,
 		}
 
+		// Broadcast whether game's ready
 		c.hub.broadcast <- Message{
 			Request: "ReadyCheck",
 			Data:    isReady,
@@ -97,7 +98,8 @@ func handleRequest(c *Client, m Message) {
 	}
 }
 
-func (c *Client) writePump() {
+// Write to client
+func (c *Client) writeToClient() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
@@ -106,6 +108,7 @@ func (c *Client) writePump() {
 
 	for {
 		select {
+		// Send message to client
 		case message, success := <-c.send:
 			c.conn.SetWriteDeadline(time.Now().Add(writeDelay))
 
@@ -117,6 +120,7 @@ func (c *Client) writePump() {
 			if err := c.conn.WriteJSON(message); err != nil {
 				log.Println(err)
 			}
+		// Check alive & query location
 		case <-ticker.C:
 			c.conn.SetWriteDeadline(time.Now().Add(writeDelay))
 
@@ -133,7 +137,7 @@ func (c *Client) writePump() {
 	}
 }
 
-func serveWs(hub *Hub, writer http.ResponseWriter, req *http.Request) {
+func serveWebSocket(hub *Hub, writer http.ResponseWriter, req *http.Request) {
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 
 	username, ok := req.URL.Query()["username"]
@@ -154,6 +158,6 @@ func serveWs(hub *Hub, writer http.ResponseWriter, req *http.Request) {
 	client := &Client{hub: hub, conn: conn, send: make(chan Message, 256), username: string(username[0])}
 	client.hub.register <- client
 
-	go client.writePump()
-	go client.readPump()
+	go client.writeToClient()
+	go client.readFromClient()
 }
