@@ -43,6 +43,8 @@ const showGame = () => {
 }
 
 const sendRandomCoordinates = () => {
+    if (!conn) return;
+
     const randRow = ['A', 'B', 'C', 'D'][Math.floor(Math.random() * 4)]
     const randCol = Math.floor(Math.random() * 4) + 1;
     conn.send(JSON.stringify({ request: 'ReceiveLocation', data: `${my_role},${randRow},${randCol}` }))
@@ -50,6 +52,7 @@ const sendRandomCoordinates = () => {
 
 /* INIT */
 window.onload = function () {
+    // Load all dom elements
     (function getGlobalDom() {
         view_title = document.getElementById('title-overlay')
         view_lobby = document.getElementById('rooms')
@@ -65,6 +68,7 @@ window.onload = function () {
         button_close = document.getElementById('close-button')
     })()
 
+    // On 'Connect' button click
     form_connect.onsubmit = (evt) => {
         evt.preventDefault();
 
@@ -75,12 +79,14 @@ window.onload = function () {
         }
     }
 
+    // On 'Close Connection' button click
     button_close.onclick = (evt) => {
         conn.close()
         window.location.reload()
     }
 }
 
+/* CONNECT */
 function startApp(username) {
     // Connect to WebSocket
     if (window["WebSocket"]) {
