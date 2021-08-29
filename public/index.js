@@ -1,13 +1,16 @@
 /* GLOBALS */
+// WS
 let conn,
     my_username,
     my_role;
 
+// Views
 let view_title,
     view_lobby,
     view_connect,
     view_field;
 
+// Components
 let form_connect,
     input_username,
     list_logs,
@@ -58,7 +61,7 @@ const sendRandomCoordinates = () => {
 /* INIT */
 window.onload = function () {
     // Load all dom elements
-    (function getGlobalDom() {
+    (function GetElements() {
         view_title = document.getElementById('title-overlay')
         view_lobby = document.getElementById('rooms')
         view_connect = document.getElementById('connect-container')
@@ -81,23 +84,21 @@ window.onload = function () {
     // On 'Connect' button click
     form_connect.onsubmit = (evt) => {
         evt.preventDefault();
-
         if (input_username.value) {
-            startApp(input_username.value)
+            App(input_username.value)
         } else {
             text_status.innerHTML = `Please enter <span class='accent-text'>Your Name</span> to connect`;
         }
     }
+}
 
+/* CONNECT */
+function App(username) {
     // On 'Close Connection' button click
     button_close.onclick = (evt) => {
         conn.close()
         window.location.reload()
     }
-}
-
-/* CONNECT */
-function startApp(username) {
     // Connect to WebSocket
     if (window["WebSocket"]) {
         my_username = username;
@@ -124,7 +125,7 @@ function startApp(username) {
             // Handle requests
             switch (message.request) {
                 case "ReadyCheck":
-                    (function startGame() {
+                    (function StartGame() {
                         const isReady = message.data
                         if (isReady) {
                             modal.classList.add("is-active")
@@ -140,7 +141,7 @@ function startApp(username) {
                     })()
                     break
                 case "UserJoined":
-                    (function logUserJoined() {
+                    (function LogUserJoined() {
                         const userData = message.data.split(',')
                         const userName = userData[0]
                         const userRole = userData[1]
@@ -158,7 +159,7 @@ function startApp(username) {
                     })()
                     break
                 case "UserLeft":
-                    (function closeConnection() {
+                    (function CloseConnection() {
                         const username = message.data
                         appendLog(`<span class='accent-text'>${username}</span> has left the field`)
                         appendLog(`Closing connection...`)
@@ -176,14 +177,14 @@ function startApp(username) {
                     })()
                     break
                 case "ReceiveLocation":
-                    (function updateLocation() {
+                    (function UpdateLocation() {
                         const locationData = message.data.split(',')
                         const role = locationData[0]
                         const row = locationData[1]
                         const col = locationData[2]
 
                         if (role === 'Hunter') {
-                            (function updateHunterLocation() {
+                            (function UpdateHunterLocation() {
                                 const previousCell = document.getElementsByClassName('hunter-location')[0];
 
                                 if (previousCell) {
@@ -196,7 +197,7 @@ function startApp(username) {
                                 targetCell.innerHTML = `<div class="hunter">Hunter ${my_role === role ? "(You)" : ""}</div>`
                             })()
                         } else {
-                            (function updateRunnerLocation() {
+                            (function UpdateRunnerLocation() {
                                 const previousCell = document.getElementsByClassName('runner-location')[0];
 
                                 if (previousCell) {
