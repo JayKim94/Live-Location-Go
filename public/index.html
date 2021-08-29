@@ -17,9 +17,10 @@
         <div id="title-overlay" class="full-container flex-column-centered">
             <div class="title-text">
                 Live Location Go
+                <img src="assets/search.gif" alt="live location go" width="45" />
             </div>
-            <div class="logo sub-text">
-                bib International College
+            <div class="logo">
+                <a class="sub-text" href="https://www.bib.de/" target="_blank">bib International College</a>
             </div>
             <div class="sub-text">
                 PBT3H19AKI
@@ -35,7 +36,7 @@
             </div>
             <div id="connect-container" class="flex-column-centered">
                 <form id="connect-form" class="flex-column-centered">
-                    <input id="username-field" type="text" class="input-field" placeholder="UserName">
+                    <input id="username-field" type="text" class="input-field" placeholder="Your name">
                     <button id="connect-button" class="default-button" type="submit">
                         Connect
                     </button>
@@ -100,6 +101,21 @@
                     </div>
                 </div>
             </main>
+        </div>
+
+        <!-- MODAL -->
+        <div id="modal-container" class="modal">
+            <div class="modal-background"></div>
+            <div class="modal-card fade-in">
+                <section class="box">
+                    <div class="flex-column-centered">
+                        <p id="modal-title" class="title-text mt-6">Match Found!</p>
+                        <img id="modal-image" src="./assets/check-circle.gif" alt="match found" width="125" />
+                        <p id="modal-subtitle" class="is-size-4 mt-5">Your Role</p>
+                        <p id="modal-dynamic" class="mb-6 is-size-3">Runner</p>
+                    </div>
+                </section>
+            </div>
         </div>
     </div>
 </body>

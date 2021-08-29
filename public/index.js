@@ -14,7 +14,12 @@ let form_connect,
     text_status,
     text_name,
     button_close,
-    text_role;
+    text_role,
+    modal,
+    modal_title,
+    modal_subtitle,
+    modal_dynamic,
+    modal_image;
 
 /* HELPER FUNCTIONS */
 const appendLog = (content) => {
@@ -66,6 +71,11 @@ window.onload = function () {
         text_name = document.getElementById('show-name')
         list_logs = document.getElementById('list-logs')
         button_close = document.getElementById('close-button')
+        modal = document.getElementById("modal-container")
+        modal_dynamic = document.getElementById("modal-dynamic")
+        modal_title = document.getElementById("modal-title")
+        modal_subtitle = document.getElementById("modal-subtitle")
+        modal_image = document.getElementById("modal-image")
     })()
 
     // On 'Connect' button click
@@ -117,8 +127,15 @@ function startApp(username) {
                     (function startGame() {
                         const isReady = message.data
                         if (isReady) {
-                            showGame()
-                            sendRandomCoordinates()
+                            modal.classList.add("is-active")
+                            modal_dynamic.classList.add(my_role === "Hunter" ? "hunter-text" : "runner-text")
+                            modal_dynamic.innerText = my_role
+
+                            setTimeout(() => {
+                                modal.classList.remove("is-active")
+                                showGame()
+                                sendRandomCoordinates()
+                            }, 3000)
                         }
                     })()
                     break
@@ -145,6 +162,13 @@ function startApp(username) {
                         const username = message.data
                         appendLog(`<span class='accent-text'>${username}</span> has left the field`)
                         appendLog(`Closing connection...`)
+
+                        modal.classList.add("is-active")
+                        modal_title.innerText = "Connection Lost"
+                        modal_subtitle.innerText = "Total Score"
+                        modal_dynamic.innerText = "0 : 0"
+                        modal_image.src = "assets/puzzled.gif"
+
                         setTimeout(() => {
                             conn.close()
                             window.location.reload()

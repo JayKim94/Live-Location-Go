@@ -252,3 +252,16 @@ input:focus {
 .hunter {
   background-color: firebrick;
 }
+
+.fade-in {
+  animation: fade-in 1500ms linear forwards;
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
