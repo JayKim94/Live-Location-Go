@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// Constants
 const (
 	writeDelay = 10 * time.Second
 
@@ -18,6 +19,7 @@ const (
 	maxMessageSize = 512
 )
 
+// HTTP => WS upgrader
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
@@ -34,8 +36,10 @@ type Client struct {
 }
 
 type Message struct {
-	Data    interface{} `json:"data"`
-	Request string      `json:"request"`
+	// Type of request
+	Request string `json:"request"`
+	// Payload
+	Data interface{} `json:"data"`
 }
 
 // Read from client
@@ -55,17 +59,17 @@ func (c *Client) readFromClient() {
 
 	// Read message and broadcast to hub
 	for {
-		message := Message{}
-		err := c.conn.ReadJSON(&message)
+		message := new(Message)
+		err := c.conn.ReadJSON(message)
 
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("Socket may be already closed for %v", c.username)
+				log.Printf("Socket Disconnected: %v", c.username)
 			}
 			break
 		}
 
-		c.hub.broadcast <- message
+		c.hub.broadcast <- *message
 	}
 }
 
@@ -95,12 +99,14 @@ func (c *Client) writeToClient() {
 		case <-ticker.C:
 			c.conn.SetWriteDeadline(time.Now().Add(writeDelay))
 
-			if len(c.hub.clients) == 2 {
+			// Send request for locations if game's ready
+			if c.hub.isReady {
 				if err := c.conn.WriteJSON(Message{Request: "SendLocation"}); err != nil {
 					log.Println(err)
 				}
 			}
 
+			// Ping pong to stay connected
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return
 			}
@@ -123,8 +129,6 @@ func serveWebSocket(hub *Hub, writer http.ResponseWriter, req *http.Request) {
 		log.Println(err)
 		return
 	}
-
-	log.Println("Client Connected: " + username[0])
 
 	client := &Client{hub: hub, conn: conn, send: make(chan Message, 256), username: string(username[0])}
 	client.hub.register <- client

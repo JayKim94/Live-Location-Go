@@ -257,11 +257,57 @@ input:focus {
   animation: fade-in 1500ms linear forwards;
 }
 
+.accent-animation {
+  animation: accent 750ms ease forwards;
+}
+
+#show-status {
+  max-height: 125px;
+}
+
+#score-dynamic {
+  color: firebrick;
+  font-size: 1.5rem;
+}
+.score-text {
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+  opacity: .75;
+}
+
+#send-message {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #AEAEAE;
+}
+#send-message:focus {
+  outline: none;
+}
+
+.opaque {
+  opacity: .55 !important;
+}
+
 @keyframes fade-in {
   0% {
     opacity: 0;
   }
   100% {
     opacity: 1;
+  }
+}
+
+@keyframes accent {
+  0% {
+    font-size: 1rem;
+  }
+
+  50% {
+    font-size: 1.75rem;
+  }
+
+  100% {
+    font-size: 1.5rem;
   }
 }

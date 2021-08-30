@@ -2,7 +2,10 @@
 // WS
 let conn,
     my_username,
-    my_role;
+    my_role,
+    my_points,
+    enemy_points,
+    appReady;
 
 // Views
 let view_title,
@@ -16,17 +19,19 @@ let form_connect,
     list_logs,
     text_status,
     text_name,
+    text_score,
     button_close,
     text_role,
     modal,
     modal_title,
     modal_subtitle,
     modal_dynamic,
-    modal_image;
+    modal_image,
+    send_message;
 
 /* HELPER FUNCTIONS */
 const appendLog = (content) => {
-    if (!list_logs) return;
+    if (!conn || !list_logs) return;
 
     const pad = (n) => n < 10 ? '0' + n : n;
     let current = new Date()
@@ -36,15 +41,15 @@ const appendLog = (content) => {
 }
 
 const showLobby = () => {
-    if (!text_status || !view_connect || !view_lobby) return;
+    if (!conn || !text_status || !view_connect || !view_lobby) return;
 
-    text_status.innerHTML = `Hello <span class='accent-text'>${my_username}</span>, waiting for the runner to enter...`;
+    text_status.innerHTML = `Hello <span class='accent-text accent-animation'>${my_username}</span>, waiting for the runner to enter...`;
     view_connect.classList.add('hide');
     view_lobby.classList.remove('hide');
 }
 
 const showGame = () => {
-    if (!view_title || !view_field) return;
+    // if (!conn || !view_title || !view_field) return;
 
     view_title.classList.add('hide');
     view_field.classList.remove('hide');
@@ -56,6 +61,32 @@ const sendRandomCoordinates = () => {
     const randRow = ['A', 'B', 'C', 'D'][Math.floor(Math.random() * 4)]
     const randCol = Math.floor(Math.random() * 4) + 1;
     conn.send(JSON.stringify({ request: 'ReceiveLocation', data: `${my_role},${randRow},${randCol}` }))
+}
+
+const switchRoles = () => {
+    if (!conn) return;
+
+    appReady = false;
+
+    if (my_role === "Hunter") {
+        conn.send(JSON.stringify({ request: 'ReceivePoints', data: `${my_username}` }))
+    }
+
+    modal_title.innerText = "Hunter caught the runner!"
+    modal_subtitle.innerText = "Switing Roles..."
+
+    my_role = my_role === "Hunter" ? "Runner" : "Hunter"
+    text_role.innerHTML = `<span class='${my_role === 'Hunter' ? 'hunter-text' : 'runner-text'}'>- ${my_role} -</span>`
+
+    modal_dynamic.innerHTML = `You are <span class='${my_role === "Hunter" ? "hunter-text" : "runner-text"}'>${my_role}</span>`
+    modal_image.src = "assets/target.gif"
+    modal.classList.add("is-active")
+
+    appendLog(`You are now <span class='accent-text'>${my_role}</span>`);
+    setTimeout(function () {
+        modal.classList.remove("is-active")
+        appReady = true;
+    }, 3000);
 }
 
 /* INIT */
@@ -72,6 +103,7 @@ window.onload = function () {
         text_status = document.getElementById('show-status')
         text_role = document.getElementById('show-role')
         text_name = document.getElementById('show-name')
+        text_score = document.getElementById('score-dynamic')
         list_logs = document.getElementById('list-logs')
         button_close = document.getElementById('close-button')
         modal = document.getElementById("modal-container")
@@ -79,6 +111,7 @@ window.onload = function () {
         modal_title = document.getElementById("modal-title")
         modal_subtitle = document.getElementById("modal-subtitle")
         modal_image = document.getElementById("modal-image")
+        send_message = document.getElementById("send-message")
     })()
 
     // On 'Connect' button click
@@ -90,6 +123,10 @@ window.onload = function () {
             text_status.innerHTML = `Please enter <span class='accent-text'>Your Name</span> to connect`;
         }
     }
+
+    appReady = true;
+    my_points = 0;
+    enemy_points = 0;
 }
 
 /* CONNECT */
@@ -99,12 +136,24 @@ function App(username) {
         conn.close()
         window.location.reload()
     }
+
+    // On 'Enter' in text box
+    send_message.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            const message = send_message.value;
+            if (!message) return;
+
+            send_message.value = ''
+            conn.send(JSON.stringify({ request: 'ReceiveMessage', data: `${my_username},${message}` }))
+        }
+    })
+
     // Connect to WebSocket
     if (window["WebSocket"]) {
         my_username = username;
         text_name.innerHTML = `${my_username}`
 
-        conn = new WebSocket("ws://" + document.location.host + `/ws?username=${username}`)
+        conn = new WebSocket("ws://" + document.location.host + `/ws?username=${username}/`)
         showLobby()
 
         conn.onopen = (evt) => {
@@ -129,8 +178,7 @@ function App(username) {
                         const isReady = message.data
                         if (isReady) {
                             modal.classList.add("is-active")
-                            modal_dynamic.classList.add(my_role === "Hunter" ? "hunter-text" : "runner-text")
-                            modal_dynamic.innerText = my_role
+                            modal_dynamic.innerHTML = `<span class='${my_role === "Hunter" ? "hunter-text" : "runner-text"}'>${my_role}</span>`
 
                             setTimeout(() => {
                                 modal.classList.remove("is-active")
@@ -146,14 +194,11 @@ function App(username) {
                         const userName = userData[0]
                         const userRole = userData[1]
 
-                        console.log(message.data);
-
                         if (userName === my_username) {
                             my_role = userRole
                             text_role.innerHTML = `<span class='${my_role === 'Hunter' ? 'hunter-text' : 'runner-text'}'>- ${my_role} -</span>`
                             appendLog("You joined the field");
-                        }
-                        else {
+                        } else {
                             appendLog(`<span class='accent-text'>${userName} (${userRole})</span> has joined the field`);
                         }
                     })()
@@ -161,13 +206,14 @@ function App(username) {
                 case "UserLeft":
                     (function CloseConnection() {
                         const username = message.data
+
                         appendLog(`<span class='accent-text'>${username}</span> has left the field`)
                         appendLog(`Closing connection...`)
 
                         modal.classList.add("is-active")
                         modal_title.innerText = "Connection Lost"
-                        modal_subtitle.innerText = "Total Score"
-                        modal_dynamic.innerText = "0 : 0"
+                        modal_subtitle.innerText = my_points > enemy_points ? "You Won!" : "Total Score"
+                        modal_dynamic.innerHTML = `<span class="accent-text">${my_points}</span> : ${enemy_points}`
                         modal_image.src = "assets/puzzled.gif"
 
                         setTimeout(() => {
@@ -193,8 +239,15 @@ function App(username) {
                                 }
 
                                 const targetCell = document.getElementById(`${row}${col}`)
-                                targetCell.classList.add('hunter-location')
-                                targetCell.innerHTML = `<div class="hunter">Hunter ${my_role === role ? "(You)" : ""}</div>`
+
+                                if (targetCell.classList.contains('runner-location')) {
+                                    switchRoles()
+                                    targetCell.classList.remove('runner-location')
+                                    targetCell.innerHTML = ''
+                                } else {
+                                    targetCell.classList.add('hunter-location')
+                                    targetCell.innerHTML = `<div class="hunter">Hunter ${my_role === role ? "(You)" : ""}</div>`
+                                }
                             })()
                         } else {
                             (function UpdateRunnerLocation() {
@@ -206,8 +259,15 @@ function App(username) {
                                 }
 
                                 const targetCell = document.getElementById(`${row}${col}`)
-                                targetCell.classList.add('runner-location')
-                                targetCell.innerHTML = `<div class="runner">Runner ${my_role === role ? "(You)" : ""}</div>`
+
+                                if (targetCell.classList.contains('hunter-location')) {
+                                    switchRoles()
+                                    targetCell.classList.remove('hunter-location')
+                                    targetCell.innerHTML = ''
+                                } else {
+                                    targetCell.classList.add('runner-location')
+                                    targetCell.innerHTML = `<div class="runner">Runner ${my_role === role ? "(You)" : ""}</div>`
+                                }
                             })()
                         }
 
@@ -215,8 +275,29 @@ function App(username) {
                     })()
                     break
                 case "SendLocation":
-                    sendRandomCoordinates()
+                    if (appReady) {
+                        sendRandomCoordinates()
+                    }
                     break
+                case "ReceivePoints":
+                    (function UpdatePoints() {
+                        const userName = message.data;
+
+                        if (userName === my_username) {
+                            my_points++
+                            text_score.innerText = my_points
+                        } else {
+                            enemy_points++
+                        }
+                    })()
+                case "ReceiveMessage":
+                    (function LogMessage() {
+                        const data = message.data.split(',')
+                        const userName = data[0]
+                        const content = data[1]
+
+                        appendLog(`<span class='accent-text'>${userName}</span>: ${content}`);
+                    })()
                 default:
                     break
             }

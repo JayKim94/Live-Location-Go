@@ -1,5 +1,7 @@
 package main
 
+import "log"
+
 // Hub definition
 type Hub struct {
 	clients map[*Client]bool
@@ -9,6 +11,10 @@ type Hub struct {
 	register chan *Client
 
 	unregister chan *Client
+
+	isReady bool
+
+	nextRole string
 }
 
 // Initializes hub
@@ -18,6 +24,19 @@ func newHub() *Hub {
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 		clients:    make(map[*Client]bool),
+		isReady:    false,
+		nextRole:   "Hunter",
+	}
+}
+
+func (h *Hub) updateStatus() {
+	if len(h.clients) == 2 {
+		h.isReady = true
+		h.nextRole = "Runner"
+		log.Println("Game Starting...")
+	} else {
+		h.isReady = false
+		h.nextRole = "Hunter"
 	}
 }
 
@@ -28,28 +47,18 @@ func (h *Hub) run() {
 		// Register client
 		case client := <-h.register:
 			h.clients[client] = true
-			// Determine role
-			role := "Hunter"
-			if len(h.clients) >= 2 {
-				role = "Runner"
-			}
-
-			// Determine whether game's ready
-			isReady := false
-			if len(h.clients) >= 2 {
-				isReady = true
-			}
+			h.updateStatus()
 
 			for c := range h.clients {
 				// Broadcast current client with assigned role
 				c.send <- Message{
 					Request: "UserJoined",
-					Data:    client.username + "," + role,
+					Data:    client.username + "," + h.nextRole,
 				}
 				// Broadcast whether game's ready
 				c.send <- Message{
 					Request: "ReadyCheck",
-					Data:    isReady,
+					Data:    h.isReady,
 				}
 			}
 		// Unregister client
@@ -66,6 +75,8 @@ func (h *Hub) run() {
 				delete(h.clients, client)
 				close(client.send)
 			}
+
+			log.Printf("Client Disconnected: %v", client.username)
 		// Broadcast
 		case message := <-h.broadcast:
 			for client := range h.clients {

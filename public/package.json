@@ -1,0 +1,11 @@
+{
+  "name": "live-location-go",
+  "version": "1.0.0",
+  "description": "Projekt bib International College",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jawoon Kim",
+  "license": "MIT"
+}
