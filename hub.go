@@ -4,19 +4,17 @@ import "log"
 
 // Hub definition
 type Hub struct {
-	hunter *Client
-
-	runner *Client
-
 	broadcast chan Message
 
 	register chan *Client
 
 	unregister chan *Client
 
-	isReady bool
+	hunter *Client
 
-	nextRole string
+	runner *Client
+
+	isReady bool
 }
 
 // Initializes hub
