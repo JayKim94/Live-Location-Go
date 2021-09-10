@@ -4,7 +4,9 @@ import "log"
 
 // Hub definition
 type Hub struct {
-	clients map[*Client]bool
+	hunter *Client
+
+	runner *Client
 
 	broadcast chan Message
 
@@ -23,20 +25,28 @@ func newHub() *Hub {
 		broadcast:  make(chan Message),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
-		clients:    make(map[*Client]bool),
+		hunter:     nil,
+		runner:     nil,
 		isReady:    false,
-		nextRole:   "Hunter",
 	}
 }
 
-func (h *Hub) updateStatus() {
-	if len(h.clients) == 2 {
+func (h *Hub) updateStatus(c *Client) {
+	if h.hunter == nil {
+		h.hunter = c
+		c.role = "Hunter"
+		log.Println(c.username + " is now a hunter")
+	} else {
+		h.runner = c
+		c.role = "Runner"
+		log.Println(c.username + " is now a runner")
+	}
+
+	if h.hunter != nil && h.runner != nil {
 		h.isReady = true
-		h.nextRole = "Runner"
-		log.Println("Game Starting...")
+		log.Println("Game is ready")
 	} else {
 		h.isReady = false
-		h.nextRole = "Hunter"
 	}
 }
 
@@ -46,46 +56,64 @@ func (h *Hub) run() {
 		select {
 		// Register client
 		case client := <-h.register:
-			h.clients[client] = true
-			h.updateStatus()
+			h.updateStatus(client)
 
-			for c := range h.clients {
-				// Broadcast current client with assigned role
-				c.send <- Message{
-					Request: "UserJoined",
-					Data:    client.username + "," + h.nextRole,
-				}
-				// Broadcast whether game's ready
-				c.send <- Message{
-					Request: "ReadyCheck",
-					Data:    h.isReady,
-				}
+			msgUserJoined := Message{
+				Request: "UserJoined",
+				Data:    client.username + "," + client.role,
+			}
+
+			msgReadyCheck := Message{
+				Request: "ReadyCheck",
+				Data:    h.isReady,
+			}
+
+			if h.hunter != nil {
+				h.hunter.send <- msgUserJoined
+				h.hunter.send <- msgReadyCheck
+			}
+
+			if h.runner != nil {
+				h.runner.send <- msgUserJoined
+				h.runner.send <- msgReadyCheck
 			}
 		// Unregister client
 		case client := <-h.unregister:
-			// Broadcast left user with user name
-			for c := range h.clients {
-				c.send <- Message{
-					Request: "UserLeft",
-					Data:    client.username,
-				}
+			msgUserLeft := Message{
+				Request: "UserLeft",
+				Data:    client.username,
 			}
 
-			if _, found := h.clients[client]; found {
-				delete(h.clients, client)
+			if client.role == "Hunter" {
+				// Clear hunter role and notify runner
+				h.hunter = nil
+
+				if h.runner != nil {
+					h.runner.send <- msgUserLeft
+				}
+
+				close(client.send)
+			} else if client.role == "Runner" {
+				// Clear runner role and notify hunter
+				h.runner = nil
+
+				if h.hunter != nil {
+					h.hunter.send <- msgUserLeft
+				}
+
 				close(client.send)
 			}
 
-			log.Printf("Client Disconnected: %v", client.username)
+			h.isReady = false
+
+			log.Println(client.role + "(" + client.username + ") disconnected")
 		// Broadcast
 		case message := <-h.broadcast:
-			for client := range h.clients {
-				select {
-				case client.send <- message:
-				default:
-					close(client.send)
-					delete(h.clients, client)
-				}
+			if h.hunter != nil {
+				h.hunter.send <- message
+			}
+			if h.runner != nil {
+				h.runner.send <- message
 			}
 		}
 	}

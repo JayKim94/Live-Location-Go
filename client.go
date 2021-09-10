@@ -14,7 +14,7 @@ const (
 
 	pongDelay = 15 * time.Second
 
-	pingPeriod = 10 * time.Second
+	pingPeriod = 5 * time.Second
 
 	maxMessageSize = 512
 )
@@ -27,6 +27,8 @@ var upgrader = websocket.Upgrader{
 
 type Client struct {
 	username string
+
+	role string
 	// ref to hub
 	hub *Hub
 	// current websocket connection
@@ -130,7 +132,7 @@ func serveWebSocket(hub *Hub, writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	client := &Client{hub: hub, conn: conn, send: make(chan Message, 256), username: string(username[0])}
+	client := &Client{hub: hub, conn: conn, send: make(chan Message, 256), username: string(username[0]), role: ""}
 	client.hub.register <- client
 
 	go client.writeToClient()
